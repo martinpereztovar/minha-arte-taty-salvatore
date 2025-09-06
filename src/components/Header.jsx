@@ -5,6 +5,7 @@ export default function Header() {
     { name: "Sobre", href: "#sobre" },
     { name: "Portfólio", href: "#portfolio" },
     { name: "Contato", href: "#contato" },
+    { name: "Área da artista", href: "/admin" },
   ];
 
   return (
