@@ -1,84 +1,97 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { storage, db } from "../firebaseConfig";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
 
 export default function Admin() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [images, setImages] = useState([
-    { id: 1, title: "Desenho 1", url: "/src/assets/drawing1.jpeg" },
-    { id: 2, title: "Desenho 2", url: "/src/assets/drawing2.jpeg" },
-  ]);
-
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // 👈 mock login (sempre logado por enquanto)
+  const [images, setImages] = useState([]);
   const [newTitle, setNewTitle] = useState("");
   const [newFile, setNewFile] = useState(null);
 
-  // Mock login (apenas checa string fixa)
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (email === "taty@admin.com" && password === "123456") {
-      setIsLoggedIn(true);
-    } else {
-      alert("Credenciais inválidas");
-    }
-  };
+  // Carregar imagens do Firestore
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "images"));
+        const imgs = querySnapshot.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }));
+        setImages(imgs);
+      } catch (error) {
+        console.error("Erro ao buscar imagens:", error);
+      }
+    };
 
-  // Mock upload (adiciona ao array local)
-  const handleUpload = (e) => {
+    fetchImages();
+  }, []);
+
+  // Upload para Storage + Firestore
+  const handleUpload = async (e) => {
     e.preventDefault();
     if (!newFile || !newTitle) {
-      alert("Preencha título e imagem");
+      alert("Preencha título e selecione uma imagem");
       return;
     }
-    const newImage = {
-      id: Date.now(),
-      title: newTitle,
-      url: URL.createObjectURL(newFile), // mock local
-    };
-    setImages([...images, newImage]);
-    setNewTitle("");
-    setNewFile(null);
+
+    try {
+      // 1. Cria referência no Storage
+      const storageRef = ref(storage, `drawings/${Date.now()}-${newFile.name}`);
+
+      // 2. Upload do arquivo
+      await uploadBytes(storageRef, newFile);
+
+      // 3. Pega a URL pública
+      const downloadURL = await getDownloadURL(storageRef);
+
+      // 4. Salva no Firestore
+      const docRef = await addDoc(collection(db, "images"), {
+        title: newTitle,
+        url: downloadURL,
+      });
+
+      // 5. Atualiza estado local
+      setImages([
+        ...images,
+        { id: docRef.id, title: newTitle, url: downloadURL },
+      ]);
+
+      // Limpa campos
+      setNewTitle("");
+      setNewFile(null);
+    } catch (error) {
+      console.error("Erro ao fazer upload:", error);
+      alert("Erro ao subir imagem");
+    }
   };
 
-  // Mock delete
-  const handleDelete = (id) => {
-    setImages(images.filter((img) => img.id !== id));
+  // Deletar do Firestore
+  const handleDelete = async (id) => {
+    try {
+      await deleteDoc(doc(db, "images", id));
+      setImages(images.filter((img) => img.id !== id));
+    } catch (error) {
+      console.error("Erro ao excluir:", error);
+      alert("Erro ao excluir imagem");
+    }
   };
 
-  // Tela de login
+  // Painel Admin
   if (!isLoggedIn) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-100">
-        <form
-          onSubmit={handleLogin}
-          className="bg-white p-8 rounded-lg shadow-md w-80"
-        >
-          <h2 className="text-2xl font-bold mb-6 text-center">Login Admin</h2>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full mb-4 px-4 py-2 border rounded"
-          />
-          <input
-            type="password"
-            placeholder="Senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full mb-6 px-4 py-2 border rounded"
-          />
-          <button
-            type="submit"
-            className="w-full bg-brand text-white py-2 rounded hover:opacity-90"
-          >
-            Entrar
-          </button>
-        </form>
+        <p>Login será implementado em breve.</p>
       </div>
     );
   }
 
-  // Painel Admin
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <h1 className="text-3xl font-bold mb-6">Painel da Artista</h1>
