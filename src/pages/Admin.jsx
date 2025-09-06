@@ -96,15 +96,56 @@ export default function Admin() {
           onChange={(e) => setNewTitle(e.target.value)}
           className="w-full mb-4 px-4 py-2 border rounded"
         />
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setNewFile(e.target.files[0])}
-          className="w-full mb-4"
-        />
+
+        {/* Área customizada para upload */}
+        <label
+          htmlFor="file-upload"
+          className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-400 rounded-lg cursor-pointer hover:bg-gray-50 transition overflow-hidden"
+        >
+          {newFile ? (
+            <div className="flex flex-col items-center">
+              <img
+                src={URL.createObjectURL(newFile)}
+                alt="preview"
+                className="h-24 object-contain mb-2"
+              />
+              <p className="text-sm text-gray-700 truncate w-40 text-center">
+                {newFile.name}
+              </p>
+            </div>
+          ) : (
+            <>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-10 w-10 text-gray-500 mb-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                />
+              </svg>
+              <p className="text-sm text-gray-600">
+                Clique ou arraste uma imagem aqui
+              </p>
+            </>
+          )}
+          <input
+            id="file-upload"
+            type="file"
+            accept="image/*"
+            onChange={(e) => setNewFile(e.target.files[0])}
+            className="hidden"
+          />
+        </label>
+
         <button
           type="submit"
-          className="bg-brand text-white px-6 py-2 rounded hover:opacity-90"
+          className="mt-4 bg-brand text-white px-6 py-2 rounded hover:opacity-90"
         >
           Upload
         </button>
