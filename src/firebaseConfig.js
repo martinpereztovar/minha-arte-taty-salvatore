@@ -7,14 +7,14 @@ import { getFirestore } from "firebase/firestore";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
-const firebaseConfig = {
+/*const firebaseConfig = {
   apiKey: "AIzaSyAeOHty3CVZ6UW2WgO9qEO3lzXngSYxR94",
   authDomain: "minha-arte-taty-salvatore.firebaseapp.com",
   projectId: "minha-arte-taty-salvatore",
   storageBucket: "minha-arte-taty-salvatore.firebasestorage.app",
   messagingSenderId: "492280420770",
   appId: "1:492280420770:web:79de7585b01105fdf7bafb",
-};
+};*/
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
