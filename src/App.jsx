@@ -5,6 +5,9 @@ import Hero from "./components/Hero";
 import About from "./components/About";
 import Gallery from "./components/Gallery";
 
+// import do Vercel Analytics
+import { Analytics } from "@vercel/analytics/react";
+
 export default function App() {
   return (
     <div className="h-screen flex flex-col">
@@ -15,6 +18,9 @@ export default function App() {
         <Gallery />
       </main>
       <Footer />
+
+      {/* Analytics do Vercel */}
+      <Analytics />
     </div>
   );
 }
