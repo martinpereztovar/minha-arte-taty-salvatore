@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { storage, db } from "../firebaseConfig";
+import { auth, storage, db } from "../firebaseConfig";
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
   collection,
@@ -10,12 +15,23 @@ import {
 } from "firebase/firestore";
 
 export default function Admin() {
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // 👈 mock login (sempre logado por enquanto)
+  const [user, setUser] = useState(null); // estado do usuário logado
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   const [images, setImages] = useState([]);
   const [newTitle, setNewTitle] = useState("");
   const [newFile, setNewFile] = useState(null);
 
-  // Carregar imagens do Firestore
+  // Verifica se há usuário logado
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Buscar imagens do Firestore
   useEffect(() => {
     const fetchImages = async () => {
       try {
@@ -33,7 +49,24 @@ export default function Admin() {
     fetchImages();
   }, []);
 
-  // Upload para Storage + Firestore
+  // Login
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      setEmail("");
+      setPassword("");
+    } catch (error) {
+      alert("Erro no login: " + error.message);
+    }
+  };
+
+  // Logout
+  const handleLogout = async () => {
+    await signOut(auth);
+  };
+
+  // Upload
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!newFile || !newTitle) {
@@ -42,28 +75,20 @@ export default function Admin() {
     }
 
     try {
-      // 1. Cria referência no Storage
       const storageRef = ref(storage, `drawings/${Date.now()}-${newFile.name}`);
-
-      // 2. Upload do arquivo
       await uploadBytes(storageRef, newFile);
-
-      // 3. Pega a URL pública
       const downloadURL = await getDownloadURL(storageRef);
 
-      // 4. Salva no Firestore
       const docRef = await addDoc(collection(db, "images"), {
         title: newTitle,
         url: downloadURL,
       });
 
-      // 5. Atualiza estado local
       setImages([
         ...images,
         { id: docRef.id, title: newTitle, url: downloadURL },
       ]);
 
-      // Limpa campos
       setNewTitle("");
       setNewFile(null);
     } catch (error) {
@@ -72,7 +97,7 @@ export default function Admin() {
     }
   };
 
-  // Deletar do Firestore
+  // Delete
   const handleDelete = async (id) => {
     try {
       await deleteDoc(doc(db, "images", id));
@@ -83,18 +108,52 @@ export default function Admin() {
     }
   };
 
-  // Painel Admin
-  if (!isLoggedIn) {
+  // Tela de login
+  if (!user) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-100">
-        <p>Login será implementado em breve.</p>
+        <form
+          onSubmit={handleLogin}
+          className="bg-white p-8 rounded-lg shadow-md w-80"
+        >
+          <h2 className="text-2xl font-bold mb-6 text-center">Login Admin</h2>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full mb-4 px-4 py-2 border rounded"
+          />
+          <input
+            type="password"
+            placeholder="Senha"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full mb-6 px-4 py-2 border rounded"
+          />
+          <button
+            type="submit"
+            className="w-full bg-brand text-white py-2 rounded hover:opacity-90"
+          >
+            Entrar
+          </button>
+        </form>
       </div>
     );
   }
 
+  // Painel admin
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-3xl font-bold mb-6">Painel da Artista</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Painel da Artista</h1>
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white px-4 py-2 rounded hover:opacity-90"
+        >
+          Sair
+        </button>
+      </div>
 
       {/* Formulário de upload */}
       <form
@@ -110,7 +169,7 @@ export default function Admin() {
           className="w-full mb-4 px-4 py-2 border rounded"
         />
 
-        {/* Área customizada para upload */}
+        {/* Área de upload */}
         <label
           htmlFor="file-upload"
           className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-400 rounded-lg cursor-pointer hover:bg-gray-50 transition overflow-hidden"
