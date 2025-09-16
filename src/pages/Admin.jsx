@@ -73,6 +73,7 @@ export default function Admin() {
       alert("Preencha título e selecione uma imagem");
       return;
     }
+    console.log("Usuário atual:", auth.currentUser);
 
     try {
       const storageRef = ref(storage, `drawings/${Date.now()}-${newFile.name}`);
