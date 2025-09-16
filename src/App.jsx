@@ -4,7 +4,7 @@ import Footer from "./components/Footer";
 import Hero from "./components/Hero";
 import About from "./components/About";
 import Gallery from "./components/Gallery";
-import Contact from "./components/Contato";
+import Contact from "./components/Contact";
 
 // import do Vercel Analytics
 import { Analytics } from "@vercel/analytics/react";
