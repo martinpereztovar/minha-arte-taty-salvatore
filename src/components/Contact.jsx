@@ -10,7 +10,7 @@ export default function Contact() {
         Contato
       </h2>
       <p className="text-gray-700 max-w-2xl mx-auto mb-8">
-        Gostou do trabalho da Taty Soalvatore? Entre em contato para encomendas,
+        Gostou do trabalho da Taty Salvatore? Entre em contato para encomendas,
         colaborações ou apenas para trocar ideias sobre arte!
       </p>
 
