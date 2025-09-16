@@ -11,7 +11,10 @@ export default function Header() {
   return (
     <header className="bg-brand text-white px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between shadow-md gap-4">
       {/* Logo / Nome da artista */}
-      <h1 className="text-xl md:text-2xl font-bold tracking-wide text-center md:text-left">
+      <h1
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        className="text-xl md:text-2xl font-bold tracking-wide text-center md:text-left cursor-pointer hover:opacity-90 transition"
+      >
         Minha Arte - Taty Salvatore
       </h1>
 
